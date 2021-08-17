@@ -1,53 +1,26 @@
 pipeline {
-  agent any
+  agent {
+      docker{
+        image 'docker.io/thomshan97/sonar_scanner'
+        args '--rm -e SONAR_HOST_URL="http://10.91.11.159:9000" -e SONAR_LOGIN="5294ef30766a00c7f2588974df733ceb28cc887e" -v ${env.WORKSPACE}:/usr/src -Dsonar.projectKey=myproject'
+      }
+  }
   stages {
     stage('Git Clone') {
       steps {
-        echo 'cloning'
+        git checkout;
       }
     }
 
-    stage('Build & Test [Maven]') {
+    stage('Static Analysis') {
       steps {
-        echo 'building'
-      }
+        script{
+            def scannerHome = tool 'SonarScanner'
+            withSonarQubeEnv('My SonarQube Server') {
+            sh "${scannerHome}/bin/sonar-scanner"
+        }
     }
-
-    stage('Upload to Nexus') {
-      steps {
-        echo 'Uploading'
-      }
     }
-
-    stage('Dockerize the App') {
-      steps {
-        echo 'dockerizing'
-      }
     }
-
-    stage('Deploy to pre-prod') {
-      steps {
-        echo 'pre-prod deploying'
-      }
-    }
-
-    stage('Run tests on pre-prod') {
-      steps {
-        echo 'testing'
-      }
-    }
-
-    stage('Deploy onto Production') {
-      steps {
-        echo 'deploying'
-      }
-    }
-
-    stage('Monitor') {
-      steps {
-        echo 'monitoring'
-      }
-    }
-
   }
 }
